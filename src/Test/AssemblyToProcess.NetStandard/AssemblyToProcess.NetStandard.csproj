@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.4</TargetFramework>
+  </PropertyGroup>
+
+  <Import Project="..\AssemblyToProcess.Shared\AssemblyToProcess.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ReferencedAssembly\ReferencedAssembly.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,8 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.4</TargetFramework>
+    <TargetFrameworks>netstandard1.0;net45;net20</TargetFrameworks>
     <RootNamespace>Fody</RootNamespace>
+    <Authors>Vincent G.</Authors>
+    <AssemblyTitle>Reference of GlobalConfigureAwait</AssemblyTitle>
+    <Description>Provides the ConfigureAwaitAttribute that tell the GlobalConfigureAwait fody addin what has to be reconfigured.</Description>
+    <VersionPrefix>1.0</VersionPrefix>
+    <AssemblyName>GlobalConfigureAwait</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
 </Project>

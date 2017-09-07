@@ -12,4 +12,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Test\AssemblyToProcess.NetStandard\AssemblyToProcess.NetStandard.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Test\AssemblyToProcess.Net\AssemblyToProcess.Net.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+  </ItemGroup>
+
 </Project>
