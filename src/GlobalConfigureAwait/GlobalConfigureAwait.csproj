@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GlobalConfigureAwait</RootNamespace>
-    <AssemblyName>GlobalConfigureAwait</AssemblyName>
+    <AssemblyName>GlobalConfigureAwait.Fody</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -60,6 +60,7 @@
     <Compile Include="ModuleWeaver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\TypeLevelSettings.cs" />
+    <Compile Include="Extensions\TypeProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

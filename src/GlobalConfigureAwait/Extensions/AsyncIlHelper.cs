@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -24,9 +25,11 @@ namespace GlobalConfigureAwait.Extensions
         public AsyncIlHelper(ModuleDefinition moduleDefinition)
         {
             _moduleDefinition = moduleDefinition;
+
             //Awaitable
-            _configuredTaskAwaitableType = (_configuredTaskAwaitableTypeRef =
-                moduleDefinition.ImportReference(typeof(ConfiguredTaskAwaitable))).Resolve();
+            _configuredTaskAwaitableTypeRef =
+                moduleDefinition.ImportReference(typeof(ConfiguredTaskAwaitable));
+            _configuredTaskAwaitableType = (_configuredTaskAwaitableTypeRef).Resolve();
 
             _configuredTaskAwaiterTypeRef =
                 moduleDefinition.ImportReference(_configuredTaskAwaitableType.NestedTypes[0]);

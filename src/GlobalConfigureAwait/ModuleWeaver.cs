@@ -38,18 +38,23 @@ namespace GlobalConfigureAwait
         {
             var assemblyLevelSettings = new AssemblyLevelSettings(ModuleDefinition.Assembly);
             var types = ModuleDefinition.GetTypes().ToList();
-            var asyncIlHelper = new AsyncIlHelper(ModuleDefinition);
+
+            var typeProvider = new TypeProvider(AssemblyResolver);
+            var typeReferenceProvider = new TypeReferenceProvider(ModuleDefinition, typeProvider);
+            LogInfo("Done");
+
+            var asyncIlHelper = new AsyncIlHelper(typeProvider, typeReferenceProvider, ModuleDefinition);
 
             //the performance improvement with parallel execution will be non existent below 15 types
 #if !DEBUG
-                        if (types.Count > 15)
+            if (types.Count > 15)
                 Parallel.ForEach(types,
                     typeDefinition => ProcessType(assemblyLevelSettings, typeDefinition, asyncIlHelper));
             else
 #endif
 
             foreach (var typeDefinition in types)
-                ProcessType(assemblyLevelSettings, typeDefinition, asyncIlHelper);
+                    ProcessType(assemblyLevelSettings, typeDefinition, asyncIlHelper);
 
             RemoveReference();
         }
@@ -92,6 +97,13 @@ namespace GlobalConfigureAwait
 
             ModuleDefinition.AssemblyReferences.Remove(referenceToRemove);
             LogInfo("\tRemoving reference to 'ConfigureAwait.dll'.");
+        }
+    }
+
+    public class WeavingException : Exception
+    {
+        public WeavingException(string message) : base(message)
+        {
         }
     }
 }
