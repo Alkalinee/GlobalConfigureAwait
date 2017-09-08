@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\Assert.cs" />
+    <Compile Include="Extensions\TypeReferenceProvider.cs" />
     <Compile Include="Settings\AssemblyLevelSettings.cs" />
     <Compile Include="Extensions\AsyncIlHelper.cs" />
     <Compile Include="Extensions\CecilExtensions.cs" />

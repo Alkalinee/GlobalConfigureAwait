@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -22,32 +19,25 @@ namespace GlobalConfigureAwait.Extensions
         private readonly ModuleDefinition _moduleDefinition;
         private readonly MethodReference _taskConfigureAwaitMethod;
 
-        public AsyncIlHelper(ModuleDefinition moduleDefinition)
+        public AsyncIlHelper(TypeProvider typeProvider, TypeReferenceProvider typeReferenceProvider,
+            ModuleDefinition moduleDefinition)
         {
             _moduleDefinition = moduleDefinition;
 
             //Awaitable
-            _configuredTaskAwaitableTypeRef =
-                moduleDefinition.ImportReference(typeof(ConfiguredTaskAwaitable));
-            _configuredTaskAwaitableType = (_configuredTaskAwaitableTypeRef).Resolve();
+            _configuredTaskAwaitableTypeRef = typeReferenceProvider.ConfiguredTaskAwaitableReference;
+            _configuredTaskAwaitableType = typeProvider.ConfiguredTaskAwaitableDefinition;
 
-            _configuredTaskAwaiterTypeRef =
-                moduleDefinition.ImportReference(_configuredTaskAwaitableType.NestedTypes[0]);
-            _configuredTaskAwaiterType = _configuredTaskAwaitableType.NestedTypes[0];
+            _configuredTaskAwaiterTypeRef = typeReferenceProvider.ConfiguredTaskAwaiterReference;
+            _configuredTaskAwaiterType = typeProvider.ConfiguredTaskAwaiterDefinition;
 
-            Assert.IsType(_configuredTaskAwaiterType, typeof(ConfiguredTaskAwaitable.ConfiguredTaskAwaiter));
+            _genericConfiguredTaskAwaitableType = typeProvider.GenericConfiguredTaskAwaitableDefinition;
+            _genericConfiguredTaskAwaiterType = typeProvider.GenericConfiguredTaskAwaiterDefinition;
 
-            _genericConfiguredTaskAwaitableType =
-                moduleDefinition.ImportReference(typeof(ConfiguredTaskAwaitable<>)).Resolve();
-            _genericConfiguredTaskAwaiterType = moduleDefinition
-                .ImportReference(_genericConfiguredTaskAwaitableType.NestedTypes[0]).Resolve();
-            Assert.IsType(_genericConfiguredTaskAwaiterType, typeof(ConfiguredTaskAwaitable<>.ConfiguredTaskAwaiter));
+            _taskConfigureAwaitMethod = typeReferenceProvider.TaskConfigureAwaitMethodReference;
 
-            _taskConfigureAwaitMethod = moduleDefinition.ImportReference(typeof(Task)).Resolve().Methods
-                .First(x => x.Name == "ConfigureAwait");
-
-            _genericTaskType = moduleDefinition.ImportReference(typeof(Task<>)).Resolve();
-            _genericTaskConfigureAwaitMethod = _genericTaskType.Methods.First(x => x.Name == "ConfigureAwait");
+            _genericTaskType = typeProvider.GenericTaskDefinition;
+            _genericTaskConfigureAwaitMethod = typeProvider.GenericTaskConfigureAwaitMethodDefinition;
         }
 
         public void AddAwaitConfigToAsyncMethod(TypeDefinition type, bool value)

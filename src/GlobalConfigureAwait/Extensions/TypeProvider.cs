@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Runtime.CompilerServices;
 using Mono.Cecil;
 
 namespace GlobalConfigureAwait.Extensions
@@ -25,11 +26,17 @@ namespace GlobalConfigureAwait.Extensions
             GenericConfiguredTaskAwaiterDefinition = GenericConfiguredTaskAwaitableDefinition.NestedTypes[0];
 
             TaskConfigureAwaitMethodDefinition =
-                types.First(x => x.Name == "Task").Methods.First(x => x.Name == "ConfigureAwait");
+                types.First(x => x.FullName == "System.Threading.Tasks.Task").Methods
+                    .First(x => x.Name == "ConfigureAwait");
 
-            GenericTaskDefinition = types.First(x => x.Name == "Task`1");
+            GenericTaskDefinition = types.First(x => x.FullName == "System.Threading.Tasks.Task`1");
             GenericTaskConfigureAwaitMethodDefinition =
                 GenericTaskDefinition.Methods.First(x => x.Name == "ConfigureAwait");
+
+            //in case the nested types change
+            Assert.IsType(ConfiguredTaskAwaiterDefinition, typeof(ConfiguredTaskAwaitable.ConfiguredTaskAwaiter));
+            Assert.IsType(GenericConfiguredTaskAwaiterDefinition,
+                typeof(ConfiguredTaskAwaitable<>.ConfiguredTaskAwaiter));
         }
 
         public TypeDefinition ConfiguredTaskAwaitableDefinition { get; }
@@ -41,37 +48,5 @@ namespace GlobalConfigureAwait.Extensions
         public MethodDefinition TaskConfigureAwaitMethodDefinition { get; }
         public TypeDefinition GenericTaskDefinition { get; }
         public MethodReference GenericTaskConfigureAwaitMethodDefinition { get; }
-    }
-
-    public class TypeReferenceProvider
-    {
-        public TypeReferenceProvider(ModuleDefinition moduleDefinition, TypeProvider typeProvider)
-        {
-            ConfiguredTaskAwaitableReference =
-                moduleDefinition.ImportReference(typeProvider.ConfiguredTaskAwaitableDefinition);
-            ConfiguredTaskAwaiterReference =
-                moduleDefinition.ImportReference(typeProvider.ConfiguredTaskAwaiterDefinition);
-
-            GenericConfiguredTaskAwaitableReference =
-                moduleDefinition.ImportReference(typeProvider.GenericConfiguredTaskAwaitableDefinition);
-            GenericConfiguredTaskAwaiterReference =
-                moduleDefinition.ImportReference(typeProvider.GenericConfiguredTaskAwaiterDefinition);
-
-            TaskConfigureAwaitMethodReference =
-                moduleDefinition.ImportReference(typeProvider.TaskConfigureAwaitMethodDefinition);
-            GenericTaskReference = moduleDefinition.ImportReference(typeProvider.GenericTaskDefinition);
-            GenericTaskConfigureAwaitMethodReference =
-                moduleDefinition.ImportReference(typeProvider.GenericTaskConfigureAwaitMethodDefinition);
-        }
-
-        public TypeReference ConfiguredTaskAwaitableReference { get; }
-        public TypeReference ConfiguredTaskAwaiterReference { get; }
-
-        public TypeReference GenericConfiguredTaskAwaitableReference { get; }
-        public TypeReference GenericConfiguredTaskAwaiterReference { get; }
-
-        public MethodReference TaskConfigureAwaitMethodReference { get; set; }
-        public TypeReference GenericTaskReference { get; set; }
-        public MethodReference GenericTaskConfigureAwaitMethodReference { get; set; }
     }
 }

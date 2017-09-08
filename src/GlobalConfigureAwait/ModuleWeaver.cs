@@ -1,13 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using GlobalConfigureAwait.Extensions;
 using GlobalConfigureAwait.Settings;
 using Mono.Cecil;
-
-#if !DEBUG
-    using System.Threading.Tasks;
-
-#endif
 
 namespace GlobalConfigureAwait
 {
@@ -37,25 +33,22 @@ namespace GlobalConfigureAwait
         public void Execute()
         {
             var assemblyLevelSettings = new AssemblyLevelSettings(ModuleDefinition.Assembly);
+            if (assemblyLevelSettings.AssemblyConfigureAwait.HasValue)
+                LogInfo(
+                    $"Detected assembly wide configuration (ConfigureAwait({assemblyLevelSettings.AssemblyConfigureAwait.Value}))");
+
             var types = ModuleDefinition.GetTypes().ToList();
 
             var typeProvider = new TypeProvider(AssemblyResolver);
             var typeReferenceProvider = new TypeReferenceProvider(ModuleDefinition, typeProvider);
-            LogInfo("Done");
 
             var asyncIlHelper = new AsyncIlHelper(typeProvider, typeReferenceProvider, ModuleDefinition);
-
-            //the performance improvement with parallel execution will be non existent below 15 types
-#if !DEBUG
-            if (types.Count > 15)
-                Parallel.ForEach(types,
-                    typeDefinition => ProcessType(assemblyLevelSettings, typeDefinition, asyncIlHelper));
-            else
-#endif
+            var stopwach = Stopwatch.StartNew();
 
             foreach (var typeDefinition in types)
-                    ProcessType(assemblyLevelSettings, typeDefinition, asyncIlHelper);
+                ProcessType(assemblyLevelSettings, typeDefinition, asyncIlHelper);
 
+            LogInfo($"Needed {stopwach.ElapsedMilliseconds} ms to process {types.Count} types");
             RemoveReference();
         }
 
@@ -91,12 +84,12 @@ namespace GlobalConfigureAwait
 
             if (referenceToRemove == null)
             {
-                LogInfo("\tNo reference to 'GlobalConfigureAwait.dll' found. References not modified.");
+                LogInfo("No reference to 'GlobalConfigureAwait.dll' found. References not modified.");
                 return;
             }
 
             ModuleDefinition.AssemblyReferences.Remove(referenceToRemove);
-            LogInfo("\tRemoving reference to 'ConfigureAwait.dll'.");
+            LogInfo("Removing reference to 'GlobalConfigureAwait.dll'.");
         }
     }
 
