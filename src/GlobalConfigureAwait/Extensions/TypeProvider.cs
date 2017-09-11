@@ -1,52 +1,57 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Mono.Cecil;
 
 namespace GlobalConfigureAwait.Extensions
 {
-    public class TypeProvider
-    {
-        public TypeProvider(IAssemblyResolver assemblyResolver)
-        {
-            var tasksAssembly = assemblyResolver.Resolve(new AssemblyNameReference("mscorlib", null));
-            if (tasksAssembly == null)
-            {
-                tasksAssembly = assemblyResolver.Resolve(new AssemblyNameReference("System.Threading.Tasks", null));
-                if (tasksAssembly == null)
-                    throw new WeavingException(
-                        "Assemblies 'System.Threading.Tasks' and 'mscorlib' were not found. Resolving failed.");
-            }
+	public class TypeProvider
+	{
+		public TypeProvider(IAssemblyResolver assemblyResolver)
+		{
+			var types = new List<TypeDefinition>(1000);
 
-            var types = tasksAssembly.MainModule.Types;
+			var runtime = assemblyResolver.Resolve(new AssemblyNameReference("System.Runtime", null)); //.Net Core 2.0
+			if (runtime != null)
+				types.AddRange(runtime.MainModule.Types);
 
-            ConfiguredTaskAwaitableDefinition = types.First(x => x.Name == "ConfiguredTaskAwaitable");
-            ConfiguredTaskAwaiterDefinition = ConfiguredTaskAwaitableDefinition.NestedTypes[0];
+			var mscorlib = assemblyResolver.Resolve(new AssemblyNameReference("mscorlib", null)); //.Net Framework
+			if (mscorlib != null)
+				types.AddRange(mscorlib.MainModule.Types);
 
-            GenericConfiguredTaskAwaitableDefinition = types.First(x => x.Name == "ConfiguredTaskAwaitable`1");
-            GenericConfiguredTaskAwaiterDefinition = GenericConfiguredTaskAwaitableDefinition.NestedTypes[0];
+			var threadingTasks =
+				assemblyResolver.Resolve(new AssemblyNameReference("System.Threading.Tasks", null)); //.Net Core 1.1/.Net Standard
+			if (threadingTasks != null)
+				types.AddRange(threadingTasks.MainModule.Types);
 
-            TaskConfigureAwaitMethodDefinition =
-                types.First(x => x.FullName == "System.Threading.Tasks.Task").Methods
-                    .First(x => x.Name == "ConfigureAwait");
+			ConfiguredTaskAwaitableDefinition = types.First(x => x.Name == "ConfiguredTaskAwaitable");
+			ConfiguredTaskAwaiterDefinition = ConfiguredTaskAwaitableDefinition.NestedTypes[0];
 
-            GenericTaskDefinition = types.First(x => x.FullName == "System.Threading.Tasks.Task`1");
-            GenericTaskConfigureAwaitMethodDefinition =
-                GenericTaskDefinition.Methods.First(x => x.Name == "ConfigureAwait");
+			GenericConfiguredTaskAwaitableDefinition = types.First(x => x.Name == "ConfiguredTaskAwaitable`1");
+			GenericConfiguredTaskAwaiterDefinition = GenericConfiguredTaskAwaitableDefinition.NestedTypes[0];
 
-            //in case the nested types change
-            Assert.IsType(ConfiguredTaskAwaiterDefinition, typeof(ConfiguredTaskAwaitable.ConfiguredTaskAwaiter));
-            Assert.IsType(GenericConfiguredTaskAwaiterDefinition,
-                typeof(ConfiguredTaskAwaitable<>.ConfiguredTaskAwaiter));
-        }
+			TaskConfigureAwaitMethodDefinition =
+				types.First(x => x.FullName == "System.Threading.Tasks.Task").Methods
+					.First(x => x.Name == "ConfigureAwait");
 
-        public TypeDefinition ConfiguredTaskAwaitableDefinition { get; }
-        public TypeDefinition ConfiguredTaskAwaiterDefinition { get; }
+			GenericTaskDefinition = types.First(x => x.FullName == "System.Threading.Tasks.Task`1");
+			GenericTaskConfigureAwaitMethodDefinition =
+				GenericTaskDefinition.Methods.First(x => x.Name == "ConfigureAwait");
 
-        public TypeDefinition GenericConfiguredTaskAwaitableDefinition { get; }
-        public TypeDefinition GenericConfiguredTaskAwaiterDefinition { get; }
+			//in case the nested types change
+			Assert.IsType(ConfiguredTaskAwaiterDefinition, typeof(ConfiguredTaskAwaitable.ConfiguredTaskAwaiter));
+			Assert.IsType(GenericConfiguredTaskAwaiterDefinition,
+				typeof(ConfiguredTaskAwaitable<>.ConfiguredTaskAwaiter));
+		}
 
-        public MethodDefinition TaskConfigureAwaitMethodDefinition { get; }
-        public TypeDefinition GenericTaskDefinition { get; }
-        public MethodReference GenericTaskConfigureAwaitMethodDefinition { get; }
-    }
+		public TypeDefinition ConfiguredTaskAwaitableDefinition { get; }
+		public TypeDefinition ConfiguredTaskAwaiterDefinition { get; }
+
+		public TypeDefinition GenericConfiguredTaskAwaitableDefinition { get; }
+		public TypeDefinition GenericConfiguredTaskAwaiterDefinition { get; }
+
+		public MethodDefinition TaskConfigureAwaitMethodDefinition { get; }
+		public TypeDefinition GenericTaskDefinition { get; }
+		public MethodReference GenericTaskConfigureAwaitMethodDefinition { get; }
+	}
 }
