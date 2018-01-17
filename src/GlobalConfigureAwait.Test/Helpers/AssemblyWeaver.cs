@@ -26,7 +26,7 @@ namespace GlobalConfigureAwait.Test.Helpers
                     LogInfo = LogInfo,
                     LogWarning = LogWarning,
                     LogError = LogError,
-                    DefineConstants = new[] {"DEBUG"} // Always testing the debug weaver
+                    DefineConstants = new List<string> {"DEBUG"} // Always testing the debug weaver
                 };
 
                 weavingTask.Execute();

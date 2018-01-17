@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using GlobalConfigureAwait.Extensions;
@@ -28,7 +29,7 @@ namespace GlobalConfigureAwait
         public IAssemblyResolver AssemblyResolver { get; set; }
 
         // A copy of the contents of the $(DefineConstants).
-        public string[] DefineConstants { get; set; }
+        public List<string> DefineConstants { get; set; }
 
         public void Execute()
         {
